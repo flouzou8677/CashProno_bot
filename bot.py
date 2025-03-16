@@ -3,10 +3,10 @@ import schedule
 from telegram import Bot
 
 # Ton token API Telegram
-TOKEN = 'TON_TOKEN_API'
+TOKEN = '7595059475:AAFuXT3i4CHZyt0B6CtoVt--uWUrhCLFaqE'
 
 # L'ID de ton canal (ou ton chat) Telegram
-CHAT_ID = '@TON_CANAL_TG'
+CHAT_ID = '@CashProno_Bot'
 
 # Créer un objet bot
 bot = Bot(token=TOKEN)
