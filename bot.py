@@ -10,15 +10,17 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=lo
 # Token du bot
 TOKEN = "8181308468:AAFmC567gtnZucX5VXo1S9mRSYyzmbK25CU"
 
-# Liste des abonnés VIP
+# Liste des abonnés
 VIP_USERS = set()
-SUBSCRIPTION_PRICE = "15€ par mois"
 SUBSCRIBED_USERS = set()
 
-# Création du bot
+# Création de l'application Telegram
 app = Application.builder().token(TOKEN).build()
 
-# Fonction d’accueil avec boutons
+# Gestion des tâches asynchrones
+tasks = set()
+
+# Fonction d'accueil avec boutons
 async def start(update: Update, context: CallbackContext):
     user_id = update.message.chat_id
     SUBSCRIBED_USERS.add(user_id)
@@ -38,7 +40,7 @@ async def start(update: Update, context: CallbackContext):
         parse_mode="Markdown"
     )
 
-# Gestion des boutons
+# Gestion des boutons interactifs
 async def button_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
@@ -90,15 +92,23 @@ async def daily_task():
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button_handler))
 
-# Lancer le bot correctement sans conflit d'event loop
+# Gestion des tâches pour éviter les erreurs
 async def main():
-    asyncio.create_task(daily_task())
-    await app.run_polling()
+    task = asyncio.create_task(daily_task())  # Création de la tâche d'envoi auto
+    tasks.add(task)
+    try:
+        await app.run_polling()
+    finally:
+        task.cancel()  # Annulation propre de la tâche
+        try:
+            await task
+        except asyncio.CancelledError:
+            logging.info("Tâche daily_task annulée proprement.")
 
-# 🔥 SOLUTION contre "RuntimeError: Cannot close a running event loop"
+# Correction de l'erreur "Task was destroyed but it is pending!"
 if __name__ == "__main__":
     try:
-        asyncio.get_event_loop().run_until_complete(main())
+        asyncio.run(main())
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
