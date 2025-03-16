@@ -4,10 +4,10 @@ import schedule
 import time
 
 # Ton token API Telegram
-TOKEN = 'TON_TOKEN_API'
+TOKEN = '7595059475:AAFuXT3i4CHZyt0B6CtoVt--uWUrhCLFaqE'
 
 # L'ID de ton canal Telegram
-CHAT_ID = '@TON_CANAL_TG'
+CHAT_ID = '@CashProno_Bot'
 
 # Créer un objet bot
 bot = Bot(token=TOKEN)
@@ -57,5 +57,3 @@ if __name__ == '__main__':
     # Lancer le serveur Flask
     app.run(host="0.0.0.0", port=5000)  # Choisir un port, par exemple 5000
     
-# Envoi d'un message de test immédiatement
-bot.send_message(chat_id=CHAT_ID, text="Le bot est en ligne et fonctionne !") 
