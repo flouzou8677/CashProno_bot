@@ -1,22 +1,27 @@
 import os
 import logging
+from flask import Flask, request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, CallbackContext
+from telegram.ext import Application, CallbackQueryHandler, MessageHandler, filters, CommandHandler, CallbackContext
 
 # Configuration du logging
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# Récupération du token (depuis Render ou en local)
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "TON_TOKEN_ICI")  # ⚠️ Remplace "TON_TOKEN_ICI" par ton vrai token
-
-# Liste des utilisateurs VIP
-VIP_USERS = {123456789, 987654321}  # Remplace avec tes vrais ID Telegram
+# Récupération du token
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")  # URL fournie par Render (expliqué plus bas)
 
 # Création du bot
 app = Application.builder().token(TOKEN).build()
 
-# Fonction d'accueil avec boutons
-async def start(update: Update, context: CallbackContext):
+# Liste des utilisateurs VIP (ajoute tes propres ID Telegram ici)
+VIP_USERS = {123456789, 987654321}  # Remplace avec les vrais ID Telegram
+
+# Création de l’application Flask
+flask_app = Flask(__name__)
+
+# Fonction d’accueil avec boutons
+async def send_buttons(update: Update, context: CallbackContext):
     keyboard = [
         [InlineKeyboardButton("📊 Pronostic Gratuit", callback_data="prono")],
         [InlineKeyboardButton("👑 Pronostic VIP", callback_data="prono_vip")],
@@ -47,13 +52,26 @@ async def button_handler(update: Update, context: CallbackContext):
         if user_id in VIP_USERS:
             await query.message.reply_text("🔥 Pronostic VIP : Bayern gagne + les deux équipes marquent !")
         else:
-            await query.message.reply_text("❌ Accès refusé. Tape /vip pour plus d’infos.")
+            await query.message.reply_text("❌ Accès refusé. Cette option est réservée aux membres VIP. Tape /vip pour plus d’infos.")
 
-# Ajouter les handlers
-app.add_handler(CommandHandler("start", start))
+# Route pour Telegram (Webhook)
+@flask_app.route(f"/{TOKEN}", methods=["POST"])
+def webhook():
+    """Réception des messages de Telegram."""
+    update = Update.de_json(request.get_json(), app.bot)
+    app.update_queue.put_nowait(update)
+    return "OK", 200
+
+# Route pour vérifier si le serveur tourne
+@flask_app.route("/")
+def home():
+    return "Le bot tourne ! 🚀", 200
+
+# Ajouter les handlers au bot
+app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, send_buttons))
 app.add_handler(CallbackQueryHandler(button_handler))
 
-# Lancer le bot en mode Polling
+# Lancement de Flask
 if __name__ == "__main__":
-    logging.info("Bot en cours d'exécution...")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
+    logging.info("Bot en cours d'exécution avec Webhook...")
+    flask_app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8443)))
