@@ -17,9 +17,6 @@ SUBSCRIBED_USERS = set()
 # Création de l'application Telegram
 app = Application.builder().token(TOKEN).build()
 
-# Gestion des tâches asynchrones
-tasks = set()
-
 # Fonction d'accueil avec boutons
 async def start(update: Update, context: CallbackContext):
     user_id = update.message.chat_id
@@ -92,24 +89,11 @@ async def daily_task():
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button_handler))
 
-# Gestion des tâches pour éviter les erreurs
+# Gestion propre de l'event loop pour éviter les erreurs
 async def main():
-    task = asyncio.create_task(daily_task())  # Création de la tâche d'envoi auto
-    tasks.add(task)
-    try:
-        await app.run_polling()
-    finally:
-        task.cancel()  # Annulation propre de la tâche
-        try:
-            await task
-        except asyncio.CancelledError:
-            logging.info("Tâche daily_task annulée proprement.")
+    asyncio.create_task(daily_task())  # Exécute la tâche de manière indépendante
+    await app.run_polling()
 
-# Correction de l'erreur "Task was destroyed but it is pending!"
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(main())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
