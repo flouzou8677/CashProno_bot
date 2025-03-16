@@ -56,3 +56,6 @@ if __name__ == '__main__':
     Thread(target=run_scheduler).start()
     # Lancer le serveur Flask
     app.run(host="0.0.0.0", port=5000)  # Choisir un port, par exemple 5000
+    
+# Envoi d'un message de test immédiatement
+bot.send_message(chat_id=CHAT_ID, text="Le bot est en ligne et fonctionne !") 
