@@ -1,19 +1,19 @@
 import logging
 import os
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, CallbackContext
 from datetime import datetime
 import asyncio
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, CallbackContext
 
-# Configuration du logging
+# Configuration du logging pour voir les erreurs
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
 # Récupération du token depuis les variables d'environnement
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-# Listes des utilisateurs abonnés
-VIP_USERS = set()
+# Listes des utilisateurs abonnés et VIP
 SUBSCRIBED_USERS = set()
+VIP_USERS = set()
 
 # Création de l'application Telegram
 app = Application.builder().token(TOKEN).build()
@@ -23,28 +23,28 @@ async def start(update: Update, context: CallbackContext):
     user_id = update.message.chat_id
     SUBSCRIBED_USERS.add(user_id)
 
+    # Création des boutons interactifs
     keyboard = [
-        [InlineKeyboardButton("📊 Pronostic Gratuit", callback_data="prono")],
-        [InlineKeyboardButton("👑 Accès VIP (15€/mois)", callback_data="vip")],
-        [InlineKeyboardButton("ℹ️ Infos VIP", callback_data="info_vip")],
+        [InlineKeyboardButton("📊 Pronostic Gratuit", callback_data="prono_gratuit")],
+        [InlineKeyboardButton("💎 Accès VIP (15€/mois)", callback_data="info_vip")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
 
     await update.message.reply_text(
         "👋 Bienvenue sur *CashProno_bot* 🎉\n"
         "📅 Chaque jour, un prono gratuit est envoyé.\n"
-        "💎 Accède à l’abonnement VIP pour des pronos premium !",
+        "💎 Accédez à l’abonnement VIP pour plus de pronostics !",
         reply_markup=reply_markup,
         parse_mode="Markdown"
     )
 
-# Gestion des boutons interactifs
+# Fonction pour gérer les boutons interactifs
 async def button_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
     user_id = query.from_user.id
 
-    if query.data == "prono":
+    if query.data == "prono_gratuit":
         await query.message.reply_text("🔥 Pronostic gratuit du jour : PSG gagne avec plus de 2.5 buts !")
     elif query.data == "info_vip":
         await query.message.reply_text(
@@ -95,6 +95,6 @@ async def main():
     asyncio.create_task(daily_task())  # Lancer la tâche d'envoi des pronos
     await app.run_polling()
 
-# Lancer l'application avec asyncio.run() pour éviter les erreurs
+# Lancer l'application
 if __name__ == "__main__":
     asyncio.run(main())
