@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import os
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, CallbackContext
@@ -7,10 +8,10 @@ from telegram.ext import Application, CallbackQueryHandler, CommandHandler, Call
 # Configuration du logging
 logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 
-# Token du bot
-TOKEN = "8181308468:AAFmC567gtnZucX5VXo1S9mRSYyzmbK25CU"
+# Récupération du token depuis les variables d'environnement
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-# Liste des abonnés
+# Listes des utilisateurs abonnés
 VIP_USERS = set()
 SUBSCRIBED_USERS = set()
 
@@ -89,11 +90,12 @@ async def daily_task():
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button_handler))
 
-# Gestion propre de l'event loop pour éviter les erreurs
+# Fonction principale pour Render
 async def main():
-    asyncio.create_task(daily_task())  # Exécute la tâche de manière indépendante
+    asyncio.create_task(daily_task())  # Lancer la tâche d'envoi des pronos
     await app.run_polling()
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     loop.run_until_complete(main())
