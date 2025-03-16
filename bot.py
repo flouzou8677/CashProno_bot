@@ -1,33 +1,41 @@
-import logging
-import requests
-import telegram
-from telegram.ext import Updater, CommandHandler
-from apscheduler.schedulers.background import BackgroundScheduler
-import os
+import time
+import schedule
+from telegram import Bot
 
-# Config
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Stocké dans les variables d’environnement
-CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")  # ID du canal
+# Ton token API Telegram
+TOKEN = 'TON_TOKEN_API'
 
-# Initialisation du bot
-bot = telegram.Bot(token=TOKEN)
-logging.basicConfig(level=logging.INFO)
+# L'ID de ton canal (ou ton chat) Telegram
+CHAT_ID = '@TON_CANAL_TG'
 
-# Fonction pour envoyer un pronostic gratuit
-def send_free_pronostic():
-    pronostic = "📢 Pronostic Gratuit du Jour 📢\n\n🔹 Équipe A vs Équipe B\n🔹 Pari conseillé : Victoire Équipe A\n🔹 Confiance : ⭐⭐⭐⭐"
-    bot.send_message(chat_id=CHANNEL_ID, text=pronostic)
+# Créer un objet bot
+bot = Bot(token=TOKEN)
 
-# Fonction pour envoyer un pronostic VIP
-def send_vip_pronostic():
-    pronostic = "🔥 Pronostic VIP 🔥\n\n🔹 Match : Équipe X vs Équipe Y\n🔹 Pari : Over 2.5 Buts\n🔹 Confiance : ⭐⭐⭐⭐⭐\n\n📩 Contacte @admin pour l’abonnement VIP."
-    bot.send_message(chat_id=CHANNEL_ID, text=pronostic)
+def envoyer_pronostic():
+    # Message de pronostics pour aujourd'hui (à personnaliser chaque jour)
+    message = """
+    📢 **Pronostics du jour** - *Date : 17 mars 2025*
 
-# Planifier l’envoi automatique
-scheduler = BackgroundScheduler()
-scheduler.add_job(send_free_pronostic, 'cron', hour=12)  # Pronostic gratuit à midi
-scheduler.add_job(send_vip_pronostic, 'cron', hour=18)   # Pronostic VIP à 18h
-scheduler.start()
+    1️⃣ **PSG vs Lorient**  
+    **Pronostic** : ⚡ Victoire PSG (très probable)  
+    **Confiance** : 80% ✅
 
-if __name__ == "__main__":
-    print("Bot en cours d'exécution...")
+    2️⃣ **Barcelone vs Atlético Madrid**  
+    **Pronostic** : ⚽ Les deux équipes marquent (BTTS: Oui)  
+    **Confiance** : 75% ✅
+
+    🔥 **Conseil** : Parier sur la victoire de PSG avec plus de 2,5 buts pour plus de sécurité.    
+
+    *Bonne chance et pariez de manière responsable !*
+    """
+    
+    # Envoi du message dans ton canal Telegram
+    bot.send_message(chat_id=CHAT_ID, text=message)
+
+# Planifier l'envoi du message tous les jours à 10h00
+schedule.every().day.at("10:00").do(envoyer_pronostic)
+
+while True:
+    # Maintenir le bot actif et exécuter le planificateur
+    schedule.run_pending()
+    time.sleep(60)  # Vérifier toutes les minutes
