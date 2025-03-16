@@ -1,6 +1,5 @@
 import logging
 import asyncio
-import os
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, CallbackContext
@@ -11,7 +10,7 @@ logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=lo
 # Token du bot
 TOKEN = "8181308468:AAFmC567gtnZucX5VXo1S9mRSYyzmbK25CU"
 
-# Base de données des utilisateurs VIP
+# Liste des abonnés VIP
 VIP_USERS = set()
 SUBSCRIPTION_PRICE = "15€ par mois"
 SUBSCRIBED_USERS = set()
@@ -19,7 +18,7 @@ SUBSCRIBED_USERS = set()
 # Création du bot
 app = Application.builder().token(TOKEN).build()
 
-# Fonction d’accueil avec boutons interactifs
+# Fonction d’accueil avec boutons
 async def start(update: Update, context: CallbackContext):
     user_id = update.message.chat_id
     SUBSCRIBED_USERS.add(user_id)
@@ -39,7 +38,7 @@ async def start(update: Update, context: CallbackContext):
         parse_mode="Markdown"
     )
 
-# Gestion des boutons interactifs
+# Gestion des boutons
 async def button_handler(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
@@ -61,7 +60,7 @@ async def button_handler(update: Update, context: CallbackContext):
         else:
             await query.message.reply_text("❌ Accès refusé. Tape /info_vip pour plus d’infos.")
 
-# Envoi automatique d’un prono gratuit chaque jour
+# Envoi automatique du prono gratuit chaque jour
 async def send_daily_prono():
     for user_id in SUBSCRIBED_USERS:
         try:
@@ -69,7 +68,7 @@ async def send_daily_prono():
         except Exception as e:
             logging.error(f"Erreur d'envoi du prono : {e}")
 
-# Envoi automatique d’un prono VIP chaque jour
+# Envoi automatique du prono VIP
 async def send_vip_prono():
     for user_id in VIP_USERS:
         try:
@@ -91,17 +90,16 @@ async def daily_task():
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button_handler))
 
-# Lancer le bot en mode Polling + tâches automatiques
+# Lancer le bot correctement sans conflit d'event loop
 async def main():
     asyncio.create_task(daily_task())
     await app.run_polling()
 
-# Gestion correcte de l’event loop pour éviter RuntimeError
+# 🔥 SOLUTION contre "RuntimeError: Cannot close a running event loop"
 if __name__ == "__main__":
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.get_event_loop().run_until_complete(main())
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-
-    loop.run_until_complete(main())
+        loop.run_until_complete(main())
