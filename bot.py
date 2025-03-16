@@ -29,7 +29,7 @@ app.add_handler(CommandHandler("prono", prono))
 # Lancement du bot
 if __name__ == "__main__":
     logging.info("Bot en cours d'exécution...")
-    PORT = int(os.environ.get("PORT", 8443))
+PORT = int(os.environ.get("PORT", 8443))
 WEBHOOK_URL = f"https://{os.environ.get('RENDER_EXTERNAL_HOSTNAME')}/"
 
 app.run_webhook(
