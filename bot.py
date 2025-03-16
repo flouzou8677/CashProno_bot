@@ -41,6 +41,11 @@ async def start(update: Update, context: CallbackContext):
     """Envoie un message de bienvenue dès que l'utilisateur démarre la conversation."""
     await send_buttons(update, context)
 
+# Fonction qui répond à la commande /prono_du_jour
+async def prono_du_jour(update: Update, context: CallbackContext):
+    """Envoie le pronostic du jour."""
+    await update.message.reply_text("🔥 *Pronostic du jour* : Real Madrid gagne et +2.5 buts dans le match !", parse_mode="Markdown")
+
 # Gestion des boutons cliqués
 async def button_handler(update: Update, context: CallbackContext):
     query = update.callback_query
@@ -77,6 +82,7 @@ def home():
 
 # Ajouter les handlers au bot
 app.add_handler(CommandHandler("start", start))  # Handler pour /start
+app.add_handler(CommandHandler("prono_du_jour", prono_du_jour))  # Handler pour /prono_du_jour
 app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, send_buttons))
 app.add_handler(CallbackQueryHandler(button_handler))
 
