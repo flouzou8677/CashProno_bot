@@ -1,7 +1,7 @@
 import logging
-import asyncio
 import os
 from datetime import datetime
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, CallbackContext
 
@@ -84,18 +84,17 @@ async def daily_task():
             await send_daily_prono()
         if now == "18:00":
             await send_vip_prono()
-        await asyncio.sleep(60)
+        await asyncio.sleep(60)  # Vérifie chaque minute
 
 # Ajouter les handlers
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(button_handler))
 
-# Fonction principale pour Render
+# Fonction principale
 async def main():
     asyncio.create_task(daily_task())  # Lancer la tâche d'envoi des pronos
     await app.run_polling()
 
+# Lancer l'application avec asyncio.run() pour éviter les erreurs
 if __name__ == "__main__":
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(main())
+    asyncio.run(main())
